@@ -8,7 +8,7 @@
 import UIKit
 
 class FIndWeatherViewController: UIViewController {
-
+    
     
     //MARK: IBOutlets
     @IBOutlet weak var searchbar: UITextField!
@@ -31,7 +31,7 @@ class FIndWeatherViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         cardShadow()
-
+        
         
     }
     
@@ -41,6 +41,12 @@ class FIndWeatherViewController: UIViewController {
         NetworkServices.shared.setCityNAme(CityName: searchbar.text ?? StringConstants.defualtCirtName)
         NetworkServices.shared.getWeatherbyCity { [weak self] weatherData in
             self?.upDateUI(with: weatherData)
+            
+            
+            if let tabBar = self?.tabBarController,
+               let weatherVC = tabBar.viewControllers?[0] as? WeatherDetailsViewController {
+                weatherVC.upDateUI(with: weatherData)
+            }
         }
     }
     
