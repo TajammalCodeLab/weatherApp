@@ -1,4 +1,11 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="23231" systemVersion="24A335" minimumToolsVersion="Automatic" sourceLanguage="Swift" usedWithSwiftData="YES" userDefinedModelVersionIdentifier="">
-    <entity name="Entity" representedClassName="Entity" syncable="YES" codeGenerationType="class"/>
+    <entity name="LocationData" representedClassName="LocationData" syncable="YES">
+        <attribute name="humidity" optional="YES" attributeType="String"/>
+        <attribute name="locationName" optional="YES" attributeType="String"/>
+        <attribute name="pressure" optional="YES" attributeType="String"/>
+        <attribute name="visibility" optional="YES" attributeType="String"/>
+        <attribute name="weatherDescrip" optional="YES" attributeType="String"/>
+        <attribute name="windSpeed" optional="YES" attributeType="String"/>
+    </entity>
 </model>

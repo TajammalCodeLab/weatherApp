@@ -8,11 +8,13 @@
 
 import UIKit
 import CoreLocation
+import Network
+
 
 
 
 class WeatherDetailsViewController: UIViewController {
-
+    
     // MARK: - Outlets -
     
     @IBOutlet weak var locationNameLBL: UILabel!
@@ -32,11 +34,14 @@ class WeatherDetailsViewController: UIViewController {
     @IBOutlet weak var vView: UIView!
     // MARK: - Variables -
     private var mViewModel = LocationManagerModel()
+    private var monitor: NWPathMonitor?
+    private let queue = DispatchQueue.global()
     
     // MARK: - Life cycle -
     override func viewDidLoad() {
         super.viewDidLoad()
         cardShadow()
+        checkAndLoadWeatherData()
         
     }
     
@@ -63,9 +68,10 @@ class WeatherDetailsViewController: UIViewController {
     // MARK: - Method -
     
     func fetchWeatherData() {
-       
+        
         NetworkServices.shared.getWeather { [weak self] weatherData in
             self?.upDateUI(with: weatherData)
+            SaveDataToCore.saveWeatherData(weather: weatherData)
         }
     }
     
@@ -90,8 +96,8 @@ class WeatherDetailsViewController: UIViewController {
         let settingAction = UIAlertAction(title: StringConstants.settingActionTitle, style: .default) { (action) in
             
             if let settingsUrl = URL(string: UIApplication.openSettingsURLString) {
-               UIApplication.shared.open(settingsUrl)
-             }
+                UIApplication.shared.open(settingsUrl)
+            }
         }
         
         let cancelAction = UIAlertAction(title: StringConstants.cancelActionTitle, style: .cancel, handler: nil)
@@ -128,8 +134,59 @@ class WeatherDetailsViewController: UIViewController {
         CustomCardViewController.shadowadding(cardView: vView)
         CustomCardViewController.shadowadding(cardView: hView)
     }
-
-
+    
+    func fetchSavedWeatherData() {
+        SaveDataToCore.fetchSavedWeatherData { [weak self] savedWeather in
+            guard let savedWeather = savedWeather else {
+                print("No saved weather data found")
+                return
+            }
+            self?.updateUIWithSavedData(weatherData: savedWeather)
+        }
+    }
+    
+    func saveWeatherData(weather: WeatherResponse) {
+        SaveDataToCore.saveWeatherData(weather: weather)
+    }
+    
+    func updateUIWithSavedData(weatherData: LocationData) {
+        tempLBL.text = "N/A"  // Since temperature is not being saved, display N/A
+        weatherCondition.text = weatherData.weatherDescrip
+        windSpeedLBL.text = weatherData.windSpeed
+        humidityLBL.text = weatherData.humidity
+        pressureLBL.text = weatherData.pressure
+        visibilityLBL.text = weatherData.visibility
+        locationNameLBL.text = weatherData.locationName
+    }
+    
+    func checkAndLoadWeatherData() {
+        if isNetworkAvailable() {
+            getLocation()  // Fetch fresh data
+        } else {
+            fetchSavedWeatherData()  // Fetch saved data if offline
+        }
+    }
+    func isNetworkAvailable() -> Bool {
+            var isAvailable = false
+            let monitor = NWPathMonitor()
+            let queue = DispatchQueue(label: "Monitor")
+            
+            monitor.pathUpdateHandler = { path in
+                if path.status == .satisfied {
+                    isAvailable = true
+                } else {
+                    isAvailable = false
+                }
+            }
+            
+            monitor.start(queue: queue)
+            return isAvailable
+        }
+    
+    
+    
+    
+    
 }
 
 
@@ -145,6 +202,10 @@ extension WeatherDetailsViewController: CLLocationManagerDelegate {
             let longitude: Double = self.mViewModel.location.coordinate.longitude
             NetworkServices.shared.setLatitude(lat: String(latitude))
             NetworkServices.shared.setLongitude(long: String(longitude))
+            
+            
+            
+            
             getLocation()
             fetchWeatherData()
             

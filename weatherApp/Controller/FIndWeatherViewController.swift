@@ -66,6 +66,7 @@ class FIndWeatherViewController: UIViewController {
     }
     
     func cardShadow() {
+        
         CustomCardViewController.shadowadding(cardView: windView)
         CustomCardViewController.shadowadding(cardView: humiView)
         CustomCardViewController.shadowadding(cardView: preView)
