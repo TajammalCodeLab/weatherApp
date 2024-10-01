@@ -8,6 +8,7 @@
 import Foundation
 import CoreLocation
 
+
 class LocationManagerModel{
     
     
@@ -16,5 +17,6 @@ class LocationManagerModel{
     let geocoder = CLGeocoder()
     var location = CLLocation()
     var placemark:CLPlacemark?
+
 }
 

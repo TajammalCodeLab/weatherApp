@@ -13,6 +13,7 @@ import Network
 
 
 
+
 class WeatherDetailsViewController: UIViewController {
     
     // MARK: - Outlets -
@@ -34,14 +35,13 @@ class WeatherDetailsViewController: UIViewController {
     @IBOutlet weak var vView: UIView!
     // MARK: - Variables -
     private var mViewModel = LocationManagerModel()
-    private var monitor: NWPathMonitor?
-    private let queue = DispatchQueue.global()
+    let monitor = NWPathMonitor()
     
     // MARK: - Life cycle -
     override func viewDidLoad() {
         super.viewDidLoad()
         cardShadow()
-        checkAndLoadWeatherData()
+        checkTheInternetConnectivity()
         
     }
     
@@ -49,10 +49,12 @@ class WeatherDetailsViewController: UIViewController {
     // MARK: - IBAction -
     
     @IBAction func refreshBtnTapped(_ sender: UIButton) {
+        
         let alert = UIAlertController(title: StringConstants.permissionTitle, message: StringConstants.alertLoactionMessage, preferredStyle: UIAlertController.Style.alert)
         
         let wantToshareAction = UIAlertAction(title: StringConstants.getLoactionActionTitle, style: .default) { (action) in
-            self.getLocation()
+            self.aurthorizedStatusChecking()
+            
         }
         
         let cancelAction = UIAlertAction(title: StringConstants.CancelLoactionActionTitle, style: .cancel) { (action) in
@@ -67,15 +69,14 @@ class WeatherDetailsViewController: UIViewController {
     // MARK: - Obj -
     // MARK: - Method -
     
-    func fetchWeatherData() {
-        
+    func fetchWeatherDataFromAPI() {
         NetworkServices.shared.getWeather { [weak self] weatherData in
             self?.upDateUI(with: weatherData)
             SaveDataToCore.saveWeatherData(weather: weatherData)
         }
     }
     
-    func getLocation() {
+    func aurthorizedStatusChecking() {
         
         let aurthorizedStatus = mViewModel.locationManager.authorizationStatus
         switch aurthorizedStatus {
@@ -135,56 +136,19 @@ class WeatherDetailsViewController: UIViewController {
         CustomCardViewController.shadowadding(cardView: hView)
     }
     
-    func fetchSavedWeatherData() {
-        SaveDataToCore.fetchSavedWeatherData { [weak self] savedWeather in
-            guard let savedWeather = savedWeather else {
-                print("No saved weather data found")
-                return
-            }
-            self?.updateUIWithSavedData(weatherData: savedWeather)
-        }
-    }
-    
-    func saveWeatherData(weather: WeatherResponse) {
-        SaveDataToCore.saveWeatherData(weather: weather)
-    }
-    
-    func updateUIWithSavedData(weatherData: LocationData) {
-        tempLBL.text = "N/A"  // Since temperature is not being saved, display N/A
-        weatherCondition.text = weatherData.weatherDescrip
-        windSpeedLBL.text = weatherData.windSpeed
-        humidityLBL.text = weatherData.humidity
-        pressureLBL.text = weatherData.pressure
-        visibilityLBL.text = weatherData.visibility
-        locationNameLBL.text = weatherData.locationName
-    }
-    
-    func checkAndLoadWeatherData() {
-        if isNetworkAvailable() {
-            getLocation()  // Fetch fresh data
-        } else {
-            fetchSavedWeatherData()  // Fetch saved data if offline
-        }
-    }
-    func isNetworkAvailable() -> Bool {
-            var isAvailable = false
-            let monitor = NWPathMonitor()
-            let queue = DispatchQueue(label: "Monitor")
-            
-            monitor.pathUpdateHandler = { path in
-                if path.status == .satisfied {
-                    isAvailable = true
-                } else {
-                    isAvailable = false
-                }
+    func checkTheInternetConnectivity() {
+        monitor.pathUpdateHandler = { path in
+            if path.status == .satisfied {
+                print("Connected to the internet")
+                self.aurthorizedStatusChecking()
+                self.fetchWeatherDataFromAPI()
+            } else if path.status == .unsatisfied {
+                
+                
             }
             
-            monitor.start(queue: queue)
-            return isAvailable
         }
-    
-    
-    
+    }
     
     
 }
@@ -197,22 +161,13 @@ extension WeatherDetailsViewController: CLLocationManagerDelegate {
         
         if let location = locations.last {
             self.mViewModel.location = location
-            
             let latitude: Double = self.mViewModel.location.coordinate.latitude
             let longitude: Double = self.mViewModel.location.coordinate.longitude
             NetworkServices.shared.setLatitude(lat: String(latitude))
             NetworkServices.shared.setLongitude(long: String(longitude))
-            
-            
-            
-            
-            getLocation()
-            fetchWeatherData()
+            fetchWeatherDataFromAPI()
             
         }
-        
-        
-        
     }
 }
 
