@@ -30,6 +30,7 @@ class FIndWeatherViewController: UIViewController {
     @IBOutlet weak var preView: UIView!
     @IBOutlet weak var visiView: UIView!
     @IBOutlet weak var mainView: UIView!
+    
     weak var delegate: FindWeatherDelegate?
     
     //MARK: life cycle

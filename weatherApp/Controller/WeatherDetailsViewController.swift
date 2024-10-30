@@ -35,6 +35,8 @@ class WeatherDetailsViewController: UIViewController {
     @IBOutlet weak var vView: UIView!
     // MARK: - Variables -
     private var mViewModel = LocationManagerModel()
+    
+    
     let monitor = NWPathMonitor()
     
     // MARK: - Life cycle -
